@@ -71,9 +71,9 @@ const Index = () => {
     setIsPlaying(true);
   };
 
-  const handleGameEnd = (distance: number, coinsCollected: number) => {
+  const handleGameEnd = (distance: number, coinsCollected: number, kills: number) => {
     setIsPlaying(false);
-    setGold(prev => prev + coinsCollected * 10);
+    setGold(prev => prev + coinsCollected * 10 + kills * 50);
     if (distance > bestDistance) {
       setBestDistance(distance);
     }
