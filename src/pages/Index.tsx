@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Icon from '@/components/ui/icon';
+import { GameScreen } from '@/components/GameScreen';
 
 interface Hero {
   id: number;
@@ -32,6 +33,9 @@ const Index = () => {
   const [gold, setGold] = useState(15420);
   const [crystals, setCrystals] = useState(287);
   const [currentTab, setCurrentTab] = useState('home');
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [selectedHero, setSelectedHero] = useState('⚔️');
+  const [bestDistance, setBestDistance] = useState(5234);
 
   const heroes: Hero[] = [
     { id: 1, name: 'Торвальд Грозный', era: 'Викинг', power: 95, speed: 70, magic: 40, level: 12, icon: '⚔️' },
@@ -61,6 +65,23 @@ const Index = () => {
     { id: 3, name: 'Магический Щит', description: 'Защита от повреждений', cost: 100, type: 'crystals', icon: '🛡️' },
     { id: 4, name: 'Новый Герой', description: 'Разблокировать героя', cost: 250, type: 'crystals', icon: '🎭' }
   ];
+
+  const handleStartGame = (heroIcon: string) => {
+    setSelectedHero(heroIcon);
+    setIsPlaying(true);
+  };
+
+  const handleGameEnd = (distance: number, coinsCollected: number) => {
+    setIsPlaying(false);
+    setGold(prev => prev + coinsCollected * 10);
+    if (distance > bestDistance) {
+      setBestDistance(distance);
+    }
+  };
+
+  if (isPlaying) {
+    return <GameScreen onExit={handleGameEnd} selectedHero={selectedHero} />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-primary/10">
@@ -128,7 +149,11 @@ const Index = () => {
               <p className="text-lg text-muted-foreground mb-6">
                 Запусти своих героев в вихрь времени и покори бесконечный туннель!
               </p>
-              <Button size="lg" className="text-xl px-12 py-6 bg-primary hover:bg-primary/90 animate-glow">
+              <Button 
+                size="lg" 
+                className="text-xl px-12 py-6 bg-primary hover:bg-primary/90 animate-glow"
+                onClick={() => handleStartGame(selectedHero)}
+              >
                 <Icon name="Play" size={24} className="mr-2" />
                 Начать забег
               </Button>
@@ -138,7 +163,7 @@ const Index = () => {
               <Card className="p-6 bg-card/80 backdrop-blur border-accent/30">
                 <div className="text-4xl mb-3">📊</div>
                 <h3 className="text-xl font-semibold mb-2">Лучший результат</h3>
-                <p className="text-3xl font-bold text-primary">5,234м</p>
+                <p className="text-3xl font-bold text-primary">{bestDistance.toLocaleString()}м</p>
               </Card>
               <Card className="p-6 bg-card/80 backdrop-blur border-accent/30">
                 <div className="text-4xl mb-3">🎯</div>
@@ -191,10 +216,19 @@ const Index = () => {
                         </div>
                       </div>
                       
-                      <Button className="w-full mt-4 bg-primary hover:bg-primary/90">
-                        <Icon name="ArrowUp" size={16} className="mr-2" />
-                        Улучшить
-                      </Button>
+                      <div className="flex gap-2 mt-4">
+                        <Button 
+                          className="flex-1 bg-primary hover:bg-primary/90"
+                          onClick={() => handleStartGame(hero.icon)}
+                        >
+                          <Icon name="Play" size={16} className="mr-2" />
+                          Играть
+                        </Button>
+                        <Button variant="outline" className="flex-1">
+                          <Icon name="ArrowUp" size={16} className="mr-2" />
+                          Улучшить
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </Card>
