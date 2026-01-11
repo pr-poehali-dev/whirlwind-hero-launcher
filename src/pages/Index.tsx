@@ -34,7 +34,7 @@ const Index = () => {
   const [crystals, setCrystals] = useState(287);
   const [currentTab, setCurrentTab] = useState('home');
   const [isPlaying, setIsPlaying] = useState(false);
-  const [selectedHero, setSelectedHero] = useState('⚔️');
+  const [selectedSquad, setSelectedSquad] = useState<number[]>([1, 2, 3]);
   const [bestDistance, setBestDistance] = useState(5234);
 
   const heroes: Hero[] = [
@@ -66,21 +66,35 @@ const Index = () => {
     { id: 4, name: 'Новый Герой', description: 'Разблокировать героя', cost: 250, type: 'crystals', icon: '🎭' }
   ];
 
-  const handleStartGame = (heroIcon: string) => {
-    setSelectedHero(heroIcon);
+  const handleStartGame = (heroIds?: number[]) => {
+    if (heroIds) {
+      setSelectedSquad(heroIds);
+    }
     setIsPlaying(true);
   };
 
-  const handleGameEnd = (distance: number, coinsCollected: number, kills: number) => {
+  const handleGameEnd = (distance: number, coinsCollected: number, crystalsCollected: number) => {
     setIsPlaying(false);
-    setGold(prev => prev + coinsCollected * 10 + kills * 50);
+    setGold(prev => prev + coinsCollected * 10 + crystalsCollected * 50);
+    setCrystals(prev => prev + crystalsCollected);
     if (distance > bestDistance) {
       setBestDistance(distance);
     }
   };
 
+  const toggleHeroInSquad = (heroId: number) => {
+    setSelectedSquad(prev => {
+      if (prev.includes(heroId)) {
+        return prev.filter(id => id !== heroId);
+      } else if (prev.length < 3) {
+        return [...prev, heroId];
+      }
+      return prev;
+    });
+  };
+
   if (isPlaying) {
-    return <GameScreen onExit={handleGameEnd} selectedHero={selectedHero} />;
+    return <GameScreen onExit={handleGameEnd} selectedHeroes={selectedSquad} />;
   }
 
   return (
@@ -149,10 +163,16 @@ const Index = () => {
               <p className="text-lg text-muted-foreground mb-6">
                 Запусти своих героев в вихрь времени и покори бесконечный туннель!
               </p>
+              <div className="mb-4">
+                <p className="text-sm text-muted-foreground mb-2">
+                  Выбрано героев: {selectedSquad.length}/3
+                </p>
+              </div>
               <Button 
                 size="lg" 
                 className="text-xl px-12 py-6 bg-primary hover:bg-primary/90 animate-glow"
-                onClick={() => handleStartGame(selectedHero)}
+                onClick={() => handleStartGame()}
+                disabled={selectedSquad.length === 0}
               >
                 <Icon name="Play" size={24} className="mr-2" />
                 Начать забег
@@ -218,11 +238,16 @@ const Index = () => {
                       
                       <div className="flex gap-2 mt-4">
                         <Button 
-                          className="flex-1 bg-primary hover:bg-primary/90"
-                          onClick={() => handleStartGame(hero.icon)}
+                          className="flex-1"
+                          variant={selectedSquad.includes(hero.id) ? 'default' : 'outline'}
+                          onClick={() => toggleHeroInSquad(hero.id)}
+                          disabled={!selectedSquad.includes(hero.id) && selectedSquad.length >= 3}
                         >
-                          <Icon name="Play" size={16} className="mr-2" />
-                          Играть
+                          {selectedSquad.includes(hero.id) ? (
+                            <><Icon name="Check" size={16} className="mr-2" />В отряде</>
+                          ) : (
+                            <><Icon name="Plus" size={16} className="mr-2" />Добавить</>
+                          )}
                         </Button>
                         <Button variant="outline" className="flex-1">
                           <Icon name="ArrowUp" size={16} className="mr-2" />
